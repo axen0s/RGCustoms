@@ -24,12 +24,12 @@ class RGCustoms(discord.Client):
         attach = message.attachments  # Returns a list of attachments
         if len(attach) > 0:
             first_attachment = attach[0]
-            if first_attachment.filename.endswith('.rofl'):
+            if first_attachment.filename.endswith('.rofl') or first_attachment.filename.endswith('.json'):
                 print("Replay file detected")
                 await first_attachment.save(f"replays/{first_attachment.filename}")
                 print("Replay file saved")
 
-                replay_id = first_attachment.filename[:-5]
+                replay_id = first_attachment.filename.split(".")[0]
         if replay_id:
             print(f"Bot will attempt to read replay {replay_id}")
             replay = replay_reader.ReplayReader(replay_id)
