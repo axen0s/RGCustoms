@@ -35,12 +35,13 @@ class RGCustoms(discord.Client):
             replay = replay_reader.ReplayReader(replay_id)
             winners, losers = replay.results()
             player_stats = replay.get_player_stats()
-            embed_data = {"title": f"Game {replay_id}", "description": f"Map: {replay.map}", "fields": []}
-            winner_embed_field = {"name": "Winning Team", "value": ""}
+            embed_data = {"title": f"Game {replay_id}", "description": f"{replay.map}\n {replay.game_time_str}", "fields": []}
+            winning_kda, losing_kda = replay.get_team_kdas()
+            winner_embed_field = {"name": f"Winning Team ({winning_kda})", "value": ""}
             for winner in winners:
                 winner_embed_field["value"] += f"{winner} ({player_stats[winner]['champion']}) {player_stats[winner]['kda']}\n"
             embed_data["fields"].append(winner_embed_field)
-            loser_embed_field = {"name": "Losing Team", "value": ""}
+            loser_embed_field = {"name": f"Losing Team ({losing_kda})", "value": ""}
             for loser in losers:
                 loser_embed_field["value"] += f"{loser} ({player_stats[loser]['champion']}) {player_stats[loser]['kda']}\n"
             embed_data["fields"].append(loser_embed_field)

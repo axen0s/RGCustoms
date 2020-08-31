@@ -1,5 +1,6 @@
 import json
 import os
+import time
 
 
 class ReplayReader:
@@ -26,6 +27,7 @@ class ReplayReader:
         self.stats = json.loads(self.json['statsJson'])
         self.map = self.infer_map()
         self.game_time = self.infer_game_time()  # (Seconds)
+        self.game_time_str = time.strftime("%M:%S", time.gmtime(self.game_time))
         actual_filename = filename.split("/")[-1]
         self.match_id = actual_filename.split("-")[-1][0:-5]
 
@@ -49,7 +51,8 @@ class ReplayReader:
         elif not is_aram:  # Sadly Twisted Treeline no longer exists
             return "Summoner's Rift"
 
-    def infer_game_time(self):  # How long the game lasted is also not given, so we check how long the players were there
+    def infer_game_time(
+            self):  # How long the game lasted is also not given, so we check how long the players were there
         record_time_played = 0
         for player_stats in self.stats:
             if int(player_stats["TIME_PLAYED"]) > record_time_played:
@@ -70,6 +73,20 @@ class ReplayReader:
         players_dict = {}
         for players in self.stats:
             players_dict[players["NAME"]] = {}
-            players_dict[players["NAME"]]["kda"] = f"{players['CHAMPIONS_KILLED']}/{players['NUM_DEATHS']}/{players['ASSISTS']}"
+            players_dict[players["NAME"]][
+                "kda"] = f"{players['CHAMPIONS_KILLED']}/{players['NUM_DEATHS']}/{players['ASSISTS']}"
             players_dict[players["NAME"]]["champion"] = players["SKIN"]
         return players_dict
+
+    def get_team_kdas(self):
+        winner_kda = [0, 0, 0]
+        loser_kda = [0, 0, 0]
+        for player_stats in self.stats:
+            if player_stats["WIN"] == "Win":
+                kda = winner_kda
+            elif player_stats["WIN"] == "Fail":
+                kda = loser_kda
+            kda[0] += int(player_stats["CHAMPIONS_KILLED"])
+            kda[1] += int(player_stats["NUM_DEATHS"])
+            kda[2] += int(player_stats["ASSISTS"])
+        return f"{winner_kda[0]}/{winner_kda[1]}/{winner_kda[2]}", f"{loser_kda[0]}/{loser_kda[1]}/{loser_kda[2]}"
