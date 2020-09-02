@@ -28,7 +28,7 @@ class ReplayReader:
             self.json = json.load(json_file)
         self.stats = json.loads(self.json['statsJson'])
         self.map = self.infer_map()
-        self.game_time = self.infer_game_time()  # (Seconds)
+        self.game_time = (self.json['gameLength'] / 1000)  # (Seconds)
         self.game_time_str = time.strftime("%M:%S", time.gmtime(self.game_time))
         actual_filename = filename.split("/")[-1]
         self.match_id = actual_filename.split("-")[-1][0:-5]
@@ -52,14 +52,6 @@ class ReplayReader:
             return "Howling Abyss"
         elif not is_aram:  # Sadly Twisted Treeline no longer exists
             return "Summoner's Rift"
-
-    def infer_game_time(
-            self):  # How long the game lasted is also not given, so we check how long the players were there
-        record_time_played = 0
-        for player_stats in self.stats:
-            if int(player_stats["TIME_PLAYED"]) > record_time_played:
-                record_time_played = int(player_stats["TIME_PLAYED"])
-        return record_time_played
 
     def results(self):  # Returns a list of winners & losers
         winners = []
