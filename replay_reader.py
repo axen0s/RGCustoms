@@ -19,7 +19,9 @@ class ReplayReader:
                 end_json = read_data.find(r'\"}]"}')
                 read_data = read_data[:(end_json + 6)]
             with open(f"{filename[0:-5]}.json", "w") as f:
-                f.write(read_data)
+                json_from_rofl = json.loads(read_data)
+                new_json_str = json.dumps(json_from_rofl, indent=2)
+                f.write(new_json_str)
             os.remove(filename)  # Rofl files take up a lot of space. Convert them to their JSON and delete them
             filename = filename[0:-5] + ".json"
         with open(filename) as json_file:
