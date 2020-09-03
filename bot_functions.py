@@ -106,14 +106,17 @@ class BotFunctions:
         summoner_name = None
         discord_id = None
         game_map = "all"
-        if len(space_split) == 1:
+        if len(space_split) == 1 or (len(space_split) == 2 and (space_split[1].lower() == "ha" or space_split[1].lower() == "sr")):
             discord_id = message.author.id
         elif space_split[1].startswith('<@!') and space_split[1].endswith('>'):
             discord_id = space_split[1][3:-1]
         else:
             summoner_name = " ".join(space_split[1:])
-        if message.content.lower()[-3:] == " sr" or message.content.lower()[-3:] == " ha":
-            game_map = message.content.lower()[-2:]
+        # Warning : The if statement below will mess up if the given summoner name ends with " sr" or " ha"
+        if space_split[-1].lower() == "sr" or space_split[-1].lower() == "ha":
+            game_map = space_split[-1].lower()
+            if summoner_name is not None:
+                summoner_name = summoner_name[:-3]
         return self.summoner_data.history(summoner_name=summoner_name, discord_id=discord_id, mode=game_map)
 
     async def handle_message(self, message):
@@ -121,8 +124,8 @@ class BotFunctions:
                     "replay": {"func": self.replay, "help": "rg:help - Attach a .ROFL or .json extracted from one for the bot to record"},
                     "link": {"func": self.link, "help": "rg:link {Summoner Name} - Links a summoner name to your Discord. Mention someone before the summoner name to link it to their Discord instead"},
                     "unlink": {"func": self.unlink, "help": "rg:unlink {Summoner Name} - Opposite of rg:link"},
-                    "profile": {"func": self.profile, "help": "rg:profile {Summoner Name or @} {ha, sr, all} - Get player's stats"},
-                    "history": {"func": self.history, "help": "rg:history {Summoner Name or @} {ha, sr, all} - Get recent matches"}}
+                    "profile": {"func": self.profile, "help": "rg:profile {Summoner Name or @} {ha or sr, leave blank for all} - Get player's stats"},
+                    "history": {"func": self.history, "help": "rg:history {Summoner Name or @} {ha or sr, leave blank for all} - Get recent matches"}}
         print(message.content)
         cmd_split = message.content.split("rg:")
         space_split = cmd_split[1].split(" ")
