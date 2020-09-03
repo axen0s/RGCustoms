@@ -20,7 +20,6 @@ class SummonerData:
         else:
             with open("data/summoner_to_id.yaml", "w") as f:
                 self.sum2id = {}
-        print(self.sum2id)
 
     def link(self, summoner_name, discord_id):
         summoner_names = self.sum2id.get(discord_id, [])
@@ -34,8 +33,6 @@ class SummonerData:
 
     def unlink(self, summoner_name, discord_id):
         summoner_names = self.sum2id.get(discord_id, [])
-        print(
-            f"Attempting to unlink summoner name {summoner_name} from list {summoner_names} (discord id {discord_id})")
         if summoner_name in summoner_names:
             summoner_names.remove(summoner_name)
             self.sum2id[discord_id] = summoner_names

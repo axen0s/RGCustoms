@@ -30,7 +30,6 @@ class BotFunctions:
         if ids is None:
             ids = message.content[6:].split(',')
         for replay_id in ids:
-            print(f"Bot will attempt to read replay {replay_id}")
             try:
                 replay = replay_reader.ReplayReader(replay_id)
             except FileNotFoundError:
@@ -82,11 +81,9 @@ class BotFunctions:
 
     async def unlink(self, message):
         space_split = message.content.split(" ")
-        print(space_split)
         if space_split[1].startswith('<@!') and space_split[1].endswith('>'):
             summoner_name = " ".join(space_split[2:])
             discord_id = space_split[1][3:-1]
-            print(summoner_name, discord_id)
         else:
             summoner_name = " ".join(space_split[1:])
             discord_id = message.author.id
@@ -94,7 +91,6 @@ class BotFunctions:
 
     async def profile(self, message):
         space_split = message.content.split(" ")
-        print(space_split)
         summoner_name = None
         discord_id = None
         if len(space_split) == 1:
