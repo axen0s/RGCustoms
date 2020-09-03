@@ -64,15 +64,38 @@ class ReplayReader:
                 losers.append(player_stats["NAME"])
         return winners, losers
 
-    def get_player_stats(self):
-        players_dict = {}
-        for players in self.stats:
-            players_dict[players["NAME"]] = {}
-            players_dict[players["NAME"]][
-                "kda"] = f"{players['CHAMPIONS_KILLED']}/{players['NUM_DEATHS']}/{players['ASSISTS']}"
-            players_dict[players["NAME"]]["champion"] = players["SKIN"]
-            players_dict[players["NAME"]]["csm"] = int(players["MINIONS_KILLED"]) / (self.game_time/60)
-        return players_dict
+    def get_player_stats(self, summoner_name=None, champ=None):
+        if summoner_name is None and champ is None:
+            players_dict = {}
+            for players in self.stats:
+                players_dict[players["NAME"]] = {}
+                players_dict[players["NAME"]][
+                    "kda"] = f"{players['CHAMPIONS_KILLED']}/{players['NUM_DEATHS']}/{players['ASSISTS']}"
+                players_dict[players["NAME"]]["champion"] = players["SKIN"]
+                players_dict[players["NAME"]]["csm"] = int(players["MINIONS_KILLED"]) / (self.game_time/60)
+                players_dict[players["NAME"]]["cs"] = players["MINIONS_KILLED"]
+            return players_dict
+        else:
+            players_dict = {}
+            for players in self.stats:
+                items = []
+                for i in range(6):
+                    items.append(players[f"ITEM{i}"])
+                if players["NAME"] == summoner_name:
+                    players_dict["kda"] = f"{players['CHAMPIONS_KILLED']}/{players['NUM_DEATHS']}/{players['ASSISTS']}"
+                    players_dict["champion"] = players["SKIN"]
+                    players_dict["csm"] = int(players["MINIONS_KILLED"]) / (self.game_time/60)
+                    players_dict["cs"] = players["MINIONS_KILLED"]
+                elif players["SKIN"] == champ:
+                    players_dict["kda"] = f"{players['CHAMPIONS_KILLED']}/{players['NUM_DEATHS']}/{players['ASSISTS']}"
+                    players_dict["champion"] = players["SKIN"]
+                    # players_dict["csm"] = int(players["MINIONS_KILLED"]) / (self.game_time/60)
+                    players_dict["cs"] = players["MINIONS_KILLED"]
+                    players_dict["keystone"] = players["KEYSTONE_ID"]
+                    players_dict["subperk"] = players["PERK_SUB_STYLE"]
+                    players_dict["gold"] = players["GOLD_EARNED"]
+                    players_dict["items"] = items
+            return players_dict
 
     def get_team_kdas(self):
         winner_kda = [0, 0, 0]
@@ -96,8 +119,8 @@ class ReplayReader:
             elif pstats["WIN"] == "Win":
                 list_to_mod = winners
             items = []
-            for item in [pstats["ITEM0"], pstats["ITEM1"], pstats["ITEM2"], pstats["ITEM3"], pstats["ITEM4"], pstats["ITEM5"], pstats["ITEM6"]]:
-                items.append(item)
+            for i in range(6):
+                items.append(pstats[f"ITEM{i}"])
             kda = f"{pstats['CHAMPIONS_KILLED']}/{pstats['NUM_DEATHS']}/{pstats['ASSISTS']}"
             list_to_mod.append([pstats["KEYSTONE_ID"], pstats["PERK_SUB_STYLE"], pstats["SKIN"], pstats["NAME"], kda, pstats["MINIONS_KILLED"], items, pstats["GOLD_EARNED"]])
         win_kda, lose_kda = self.get_team_kdas()

@@ -1,5 +1,6 @@
 import replay_reader
 import summoner_data
+import image_gen
 from discord import File
 import os
 
@@ -7,6 +8,7 @@ import os
 class BotFunctions:
     def __init__(self):
         self.summoner_data = summoner_data.SummonerData()
+        self.image_gen = image_gen.ImageGen()
 
     async def log(self, message=None, ids=None):
         if ids is None:
@@ -82,11 +84,17 @@ class BotFunctions:
 
     async def history(self, message):
         matches = self.get_history(message)
-        pretty_matches = []
+        match_history = []
         for match in matches:
             champ, result, kda, game_id, csm = match.split("|")
-            pretty_matches.append(f"{champ} {result} {kda} {round(float(csm), 1)} CS/min ({game_id})")
-        await message.channel.send(content="\n".join(pretty_matches))
+            replay = replay_reader.ReplayReader(game_id)
+            stats = replay.get_player_stats(champ=champ)
+            match_history.append([champ, result, stats['keystone'], stats['subperk'], kda, stats['cs'], stats['items'], stats['gold']])
+            # pretty_matches.append(f"{champ} {result} {kda} {stats['cs']} CS ({game_id})")
+        self.image_gen.generate_player_history(match_history)
+        await message.channel.send(file=File('temp.png'))
+        os.remove('temp.png')
+        # await message.channel.send(content="\n".join(pretty_matches))
 
     def get_history(self, message):
         space_split = message.content.split(" ")
