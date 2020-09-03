@@ -28,10 +28,10 @@ class ReplayReader:
             self.json = json.load(json_file)
         self.stats = json.loads(self.json['statsJson'])
         self.map = self.infer_map()
-        self.game_time = (self.json['gameLength'] / 1000)  # (Seconds)
+        self.game_time = (self.json['gameLength'] / 1000)  # (Milliseconds -> Seconds)
         self.game_time_str = time.strftime("%M:%S", time.gmtime(self.game_time))
         actual_filename = filename.split("/")[-1]
-        self.match_id = actual_filename.split("-")[-1][0:-5]
+        self.match_id = replay_id
 
     def infer_map(self):  # The map is not given to us, so we must infer.
         sr_trinkets = [3340, 3364, 3363, 3513]
@@ -84,3 +84,4 @@ class ReplayReader:
             kda[1] += int(player_stats["NUM_DEATHS"])
             kda[2] += int(player_stats["ASSISTS"])
         return f"{winner_kda[0]}/{winner_kda[1]}/{winner_kda[2]}", f"{loser_kda[0]}/{loser_kda[1]}/{loser_kda[2]}"
+
