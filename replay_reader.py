@@ -1,6 +1,7 @@
 import json
 import os
 import time
+import image_gen
 
 
 class ReplayReader:
@@ -30,8 +31,8 @@ class ReplayReader:
         self.map = self.infer_map()
         self.game_time = (self.json['gameLength'] / 1000)  # (Milliseconds -> Seconds)
         self.game_time_str = time.strftime("%M:%S", time.gmtime(self.game_time))
-        actual_filename = filename.split("/")[-1]
         self.match_id = replay_id
+        self.image_gen = image_gen.ImageGen()
 
     def infer_map(self):  # The map is not given to us, so we must infer.
         sr_trinkets = [3340, 3364, 3363, 3513]
@@ -70,6 +71,7 @@ class ReplayReader:
             players_dict[players["NAME"]][
                 "kda"] = f"{players['CHAMPIONS_KILLED']}/{players['NUM_DEATHS']}/{players['ASSISTS']}"
             players_dict[players["NAME"]]["champion"] = players["SKIN"]
+            players_dict[players["NAME"]]["csm"] = int(players["MINIONS_KILLED"]) / (self.game_time/60)
         return players_dict
 
     def get_team_kdas(self):
@@ -85,3 +87,18 @@ class ReplayReader:
             kda[2] += int(player_stats["ASSISTS"])
         return f"{winner_kda[0]}/{winner_kda[1]}/{winner_kda[2]}", f"{loser_kda[0]}/{loser_kda[1]}/{loser_kda[2]}"
 
+    def generate_game_img(self):
+        winners = []  # [KEYSTONE_ID, PERK_SUB_STYLE, champ, name, KDA, [items]]
+        losers = []
+        for pstats in self.stats:
+            if pstats["WIN"] == "Fail":
+                list_to_mod = losers
+            elif pstats["WIN"] == "Win":
+                list_to_mod = winners
+            items = []
+            for item in [pstats["ITEM0"], pstats["ITEM1"], pstats["ITEM2"], pstats["ITEM3"], pstats["ITEM4"], pstats["ITEM5"], pstats["ITEM6"]]:
+                items.append(item)
+            kda = f"{pstats['CHAMPIONS_KILLED']}/{pstats['NUM_DEATHS']}/{pstats['ASSISTS']}"
+            list_to_mod.append([pstats["KEYSTONE_ID"], pstats["PERK_SUB_STYLE"], pstats["SKIN"], pstats["NAME"], kda, pstats["MINIONS_KILLED"], items, pstats["GOLD_EARNED"]])
+        win_kda, lose_kda = self.get_team_kdas()
+        self.image_gen.generate_game_img([[win_kda, lose_kda], winners, losers, self.map, self.game_time_str])

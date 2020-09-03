@@ -55,6 +55,7 @@ class SummonerData:
         for player in (winners + losers):
             kda = pstats[player]['kda']
             champion = pstats[player]['champion']
+            csm = pstats[player]['csm']
             result = 'Win' if player in winners else 'Loss'
             if os.path.exists(f'data/{player}.yaml'):
                 with open(f"data/{player}.yaml", "r") as f:
@@ -63,7 +64,7 @@ class SummonerData:
                 pyaml = {}
             with open(f"data/{player}.yaml", "w") as f:
                 yaml_map = pyaml.get(game_map, [])
-                yaml_map.append(f"{champion}|{result}|{kda}|{replay_id}")
+                yaml_map.append(f"{champion}|{result}|{kda}|{replay_id}|{csm}")
                 pyaml[game_map] = yaml_map
                 yaml.dump(pyaml, f)
 
@@ -93,27 +94,38 @@ class SummonerData:
         return matches
 
     def profile(self, matches):
-        profile_str = "Champ - Winrate - KDA\n"
+        games = 0
+        wins = 0
         champ_data = {}
+        print(matches)
+        if len(matches) == 0:
+            return "No matches found on that map"
+        if "Summoner name " in matches[0] and " not found" in matches[0]:
+            return matches[0]
         for match in matches:
-            champ, result, kda, game_id = match.split("|")
-            current_champ_data = champ_data.get(champ, [0, 0, 0, 0, 0])  # {Champ: [W, L, K, D, A]}
+            champ, result, kda, game_id, csm = match.split("|")
+            current_champ_data = champ_data.get(champ, [0, 0, 0, 0, 0, 0])  # {Champ: [W, L, K, D, A, CS/M]}
             if result == "Win":
                 current_champ_data[0] += 1
+                wins += 1
             elif result == "Loss":
                 current_champ_data[1] += 1
+            games += 1
             kills, deaths, assists = kda.split("/")
             current_champ_data[2] += int(kills)
             current_champ_data[3] += int(deaths)
             current_champ_data[4] += int(assists)
+            current_champ_data[5] += float(csm)
             champ_data[champ] = current_champ_data
+        profile_str = f"{wins}W {games-wins}L ({simplify(wins/games)*100}% WR)\nChamp - Winrate - KDA - CS/min\n"
         for champ in champ_data:
             total_games = champ_data[champ][0] + champ_data[champ][1]
             winrate = simplify((champ_data[champ][0] / total_games) * 100)
             average_k = simplify((champ_data[champ][2] / total_games))
             average_d = simplify((champ_data[champ][3] / total_games))
             average_a = simplify((champ_data[champ][4] / total_games))
-            profile_str += f"{champ} - {winrate}% - {average_k}/{average_d}/{average_a}\n"
+            average_csm = simplify(round(champ_data[champ][5] / total_games, 1))
+            profile_str += f"{champ} - {winrate}% - {average_k}/{average_d}/{average_a} - {average_csm}\n"
         return profile_str
 
     def save(self):  # Saves all yaml files
