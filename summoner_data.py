@@ -23,8 +23,14 @@ class SummonerData:
 
     def link(self, summoner_name, discord_id):
         summoner_names = self.sum2id.get(discord_id, [])
+        taken_summoner_names = []
+        for discord_ids in self.sum2id:
+            for taken_summoner_name in self.sum2id[discord_ids]:
+                taken_summoner_names.append(taken_summoner_name)
         if summoner_name in summoner_names:
             return "Summoner already linked"
+        elif summoner_name in taken_summoner_names:
+            return "Someone else already has this summoner name"
         else:
             summoner_names.append(summoner_name)
             self.sum2id[discord_id] = summoner_names
@@ -57,7 +63,7 @@ class SummonerData:
                 pyaml = {}
             with open(f"data/{player}.yaml", "w") as f:
                 yaml_map = pyaml.get(game_map, [])
-                yaml_map.append(f"{champion}|{result}|{kda}")
+                yaml_map.append(f"{champion}|{result}|{kda}|{replay_id}")
                 pyaml[game_map] = yaml_map
                 yaml.dump(pyaml, f)
 
@@ -70,8 +76,11 @@ class SummonerData:
             names.append(summoner_name)
         matches = []
         for name in names:
-            with open(f"data/{name}.yaml", "r") as f:
-                match_history = yaml.load(f, Loader=yaml.FullLoader)
+            try:
+                with open(f"data/{name}.yaml", "r") as f:
+                    match_history = yaml.load(f, Loader=yaml.FullLoader)
+            except FileNotFoundError:
+                return [f"Summoner name {name} not found"]
             sr_matches = match_history.get("Summoner's Rift", [])
             ha_matches = match_history.get("Howling Abyss", [])
             if mode.lower() == "all":
@@ -87,7 +96,7 @@ class SummonerData:
         profile_str = "Champ - Winrate - KDA\n"
         champ_data = {}
         for match in matches:
-            champ, result, kda = match.split("|")
+            champ, result, kda, game_id = match.split("|")
             current_champ_data = champ_data.get(champ, [0, 0, 0, 0, 0])  # {Champ: [W, L, K, D, A]}
             if result == "Win":
                 current_champ_data[0] += 1

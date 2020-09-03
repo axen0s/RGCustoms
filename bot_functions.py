@@ -90,24 +90,39 @@ class BotFunctions:
         await message.channel.send(content=self.summoner_data.unlink(summoner_name, str(discord_id)))
 
     async def profile(self, message):
+        matches = self.get_history(message)
+        await message.channel.send(content=self.summoner_data.profile(matches))
+
+    async def history(self, message):
+        matches = self.get_history(message)
+        pretty_matches = []
+        for match in matches:
+            champ, result, kda, game_id = match.split("|")
+            pretty_matches.append(f"{champ} {result} {kda} ({game_id})")
+        await message.channel.send(content="\n".join(pretty_matches))
+
+    def get_history(self, message):
         space_split = message.content.split(" ")
         summoner_name = None
         discord_id = None
+        game_map = "all"
         if len(space_split) == 1:
             discord_id = message.author.id
         elif space_split[1].startswith('<@!') and space_split[1].endswith('>'):
             discord_id = space_split[1][3:-1]
         else:
             summoner_name = " ".join(space_split[1:])
-        matches = self.summoner_data.history(summoner_name=summoner_name, discord_id=discord_id)
-        await message.channel.send(content=self.summoner_data.profile(matches))
+        if message.content.lower()[-3:] == " sr" or message.content.lower()[-3:] == " ha":
+            game_map = message.content.lower()[-2:]
+        return self.summoner_data.history(summoner_name=summoner_name, discord_id=discord_id, mode=game_map)
 
     async def handle_message(self, message):
         commands = {"id": {"func": self.id, "help": "rg:id {ID} - Gets info of match ID"},
                     "replay": {"func": self.replay, "help": "rg:help - Attach a .ROFL or .json extracted from one for the bot to record"},
                     "link": {"func": self.link, "help": "rg:link {Summoner Name} - Links a summoner name to your Discord. Mention someone before the summoner name to link it to their Discord instead"},
                     "unlink": {"func": self.unlink, "help": "rg:unlink {Summoner Name} - Opposite of rg:link"},
-                    "profile": {"func": self.profile, "help": "rg:profile {Summoner Name or @} {ha, sr, all} - Get player's stats"}}
+                    "profile": {"func": self.profile, "help": "rg:profile {Summoner Name or @} {ha, sr, all} - Get player's stats"},
+                    "history": {"func": self.history, "help": "rg:history {Summoner Name or @} {ha, sr, all} - Get recent matches"}}
         print(message.content)
         cmd_split = message.content.split("rg:")
         space_split = cmd_split[1].split(" ")
