@@ -4,7 +4,9 @@ A Discord bot to track customs with ROFL files. WIP
 # Requirements  
 Python module requirements are listed in requirements.txt. 
 To generate images of matches/history/profiles, you will need to download the data dragon from Riot's API. 
-You can find it here: https://developer.riotgames.com/docs/lol#data-dragon
+You can find it here: https://developer.riotgames.com/docs/lol#data-dragon  
+"runesReforged.json" needs to be put into data/, and the "img"   
+directory from dragontail.zip should be moved here.
 
 # image_gen  
 image_gen generates images based on a given match history or particular match.  
