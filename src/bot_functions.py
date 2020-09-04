@@ -5,6 +5,8 @@ import os
 
 def msg2sum(content, d_id):
     space_split = content.split(" ")
+    if len(space_split) == 1:
+        return None, d_id
     if space_split[1].startswith('<@!') and space_split[1].endswith('>'):
         return " ".join(space_split[2:]), space_split[1][3:-1]  # given summonername, given discord id
     else:
@@ -34,18 +36,18 @@ class BotFunctions:
         if ids is None:
             ids = message.content[7:].split(",")
         for replay_id in ids:
-            if os.path.exists("../data/logged.txt"):
-                with open("../data/logged.txt", "r") as f:
+            if os.path.exists("data/logged.txt"):
+                with open("data/logged.txt", "r") as f:
                     logged_ids = f.readlines()
                     if replay_id + '\n' in logged_ids:
                         if message:
                             await message.channel.send(
                                 content=f"Match {replay_id} was previously logged")  # The match has already been logged.
                         return
-            elif not os.path.exists("../data/logged.txt"):
-                with open("../data/logged.txt", "w") as f:
+            elif not os.path.exists("data/logged.txt"):
+                with open("data/logged.txt", "w") as f:
                     pass
-            with open("../data/logged.txt", "a") as f:
+            with open("data/logged.txt", "a") as f:
                 f.write(f"{replay_id}\n")
             self.summoner_data.log(replay_id)
             if message:
@@ -109,10 +111,11 @@ class BotFunctions:
         game_map = "all"
         summoner_name, discord_id = msg2sum(message.content, message.author.id)
         # Warning : The if statement below will mess up if the given summoner name ends with " sr" or " ha"
-        if summoner_name[-3:].lower() == "sr" or summoner_name[-3:].lower() == "ha":
-            game_map = summoner_name[-3:].lower()
-            if summoner_name is not None:
+        if summoner_name:
+            if summoner_name[-3:].lower() == "sr" or summoner_name[-3:].lower() == "ha":
+                game_map = summoner_name[-3:].lower()
                 summoner_name = summoner_name[:-3]
+        print(f"Getting history for ID {discord_id} / Sname {summoner_name}")
         return self.summoner_data.history(summoner_name=summoner_name, discord_id=discord_id, mode=game_map)
 
     async def help(self, message):

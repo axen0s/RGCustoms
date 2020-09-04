@@ -12,11 +12,11 @@ def simplify(num):
 
 class SummonerData:
     def __init__(self):
-        if os.path.exists("../data/summoner_to_id.yaml"):
-            with open("../data/summoner_to_id.yaml", "r") as f:
+        if os.path.exists("data/summoner_to_id.yaml"):
+            with open("data/summoner_to_id.yaml", "r") as f:
                 self.sum2id = yaml.load(f, Loader=yaml.FullLoader)
         else:
-            with open("../data/summoner_to_id.yaml", "w") as f:
+            with open("data/summoner_to_id.yaml", "w") as f:
                 self.sum2id = {}
 
     def link(self, summoner_name, discord_id):
@@ -68,10 +68,10 @@ class SummonerData:
 
     def history(self, discord_id=None, summoner_name=None, mode="all"):
         names = []
-        if discord_id is not None:
+        if discord_id:
             for summoner_names in self.sum2id[str(discord_id)]:
                 names.append(summoner_names)
-        elif summoner_name is not None:
+        elif summoner_name:
             names.append(summoner_name)
         matches = []
         for name in names:
@@ -126,6 +126,6 @@ class SummonerData:
             profile_str += f"{champ} - {winrate}% - {average_k}/{average_d}/{average_a} - {average_csm}\n"
         return profile_str
 
-    def save(self):  # Saves all yaml files
-        with open("../data/summoner_to_id.yaml", "w") as f:
+    def save(self):  # Saves sum2id yaml file
+        with open("data/summoner_to_id.yaml", "w") as f:
             yaml.dump(self.sum2id, f)

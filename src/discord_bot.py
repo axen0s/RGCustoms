@@ -17,7 +17,7 @@ class RGCustoms(Client):
 
     async def on_ready(self):
         print(f"Logged in as {self.user}, ID {self.user.id}")
-        await self.change_presence(activity=Game(name='rg:help'))
+        await self.change_presence(activity=Game(name=f'{self.prefix}help'))
 
     async def on_message(self, message):
         if message.author == self.user:
