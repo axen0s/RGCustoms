@@ -1,6 +1,6 @@
 import yaml
 import os
-import replay_reader
+from src import replay_reader
 
 
 def simplify(num):
@@ -12,13 +12,11 @@ def simplify(num):
 
 class SummonerData:
     def __init__(self):
-        if not os.path.exists("data"):
-            os.mkdir("data")
-        if os.path.exists("data/summoner_to_id.yaml"):
-            with open("data/summoner_to_id.yaml", "r") as f:
+        if os.path.exists("../data/summoner_to_id.yaml"):
+            with open("../data/summoner_to_id.yaml", "r") as f:
                 self.sum2id = yaml.load(f, Loader=yaml.FullLoader)
         else:
-            with open("data/summoner_to_id.yaml", "w") as f:
+            with open("../data/summoner_to_id.yaml", "w") as f:
                 self.sum2id = {}
 
     def link(self, summoner_name, discord_id):
@@ -57,12 +55,12 @@ class SummonerData:
             champion = pstats[player]['champion']
             csm = pstats[player]['csm']
             result = 'Win' if player in winners else 'Loss'
-            if os.path.exists(f'data/{player}.yaml'):
-                with open(f"data/{player}.yaml", "r") as f:
+            if os.path.exists(f'data/players/{player}.yaml'):
+                with open(f"data/players/{player}.yaml", "r") as f:
                     pyaml = yaml.load(f, Loader=yaml.FullLoader)
             else:
                 pyaml = {}
-            with open(f"data/{player}.yaml", "w") as f:
+            with open(f"data/players/{player}.yaml", "w") as f:
                 yaml_map = pyaml.get(game_map, [])
                 yaml_map.append(f"{champion}|{result}|{kda}|{replay_id}|{csm}")
                 pyaml[game_map] = yaml_map
@@ -78,7 +76,7 @@ class SummonerData:
         matches = []
         for name in names:
             try:
-                with open(f"data/{name}.yaml", "r") as f:
+                with open(f"data/players/{name}.yaml", "r") as f:
                     match_history = yaml.load(f, Loader=yaml.FullLoader)
             except FileNotFoundError:
                 return [f"Summoner name {name} not found"]
@@ -129,5 +127,5 @@ class SummonerData:
         return profile_str
 
     def save(self):  # Saves all yaml files
-        with open("data/summoner_to_id.yaml", "w") as f:
+        with open("../data/summoner_to_id.yaml", "w") as f:
             yaml.dump(self.sum2id, f)

@@ -1,7 +1,11 @@
-import discord_bot
+from src import discord_bot
+import configparser
 
-with open('token.txt', 'r') as token_file:
-    token = token_file.read()  # make your own token.txt =)
+config = configparser.ConfigParser()
+config.read('config.ini')
+section = config['CONFIG']
+token = section['token']
+prefix = section['prefix']
 
-RGCustomsBot = discord_bot.RGCustoms()
+RGCustomsBot = discord_bot.RGCustoms(prefix)
 RGCustomsBot.run(token)

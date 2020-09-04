@@ -4,8 +4,12 @@ import json
 
 class ImageGen:
     def __init__(self):
-        with open("data/runesReforged.json", "r") as f:
-            self.rune_data = json.load(f)
+        try:
+            with open("data/runesReforged.json", "r") as f:
+                self.rune_data = json.load(f)
+        except FileNotFoundError:
+            print("data/runesReforged.json not found. Download it from Riot's datadragon and restart.")
+            exit()
         self.current_image = None
         self.draw = None
         self.current_pixel = (0, 0)
@@ -72,11 +76,11 @@ class ImageGen:
         self.text(text=gold_with_comma, x=75, fill="Yellow")
         self.current_pixel = (0, self.current_pixel[1] + 40)
 
-    def generate_game_img(self, player_list):
+    def generate_game_img(self, player_list, id=None):
         # [[winner kda, loser kda], Winners, Losers, map, timestamp]
         # in each team will be a list of players, containing [KEYSTONE_ID, PERK_SUB_STYLE, champ, name, KDA, minions_killed, [items], gold_earned]
-        additional_pixels = (len(player_list[1]) + len(player_list[2])) * 40  # add another 70 pixels for each player
-        self.current_image = Image.new('RGBA', (650, 150+additional_pixels))
+        additional_pixels = (len(player_list[1]) + len(player_list[2])) * 43  # add another 45 pts for each player
+        self.current_image = Image.new('RGBA', (680, 150+additional_pixels))
         self.draw = ImageDraw.Draw(self.current_image)
         self.current_pixel = (0, 0)
         self.text(text=f"{player_list[3]} ({player_list[4]})")
@@ -89,9 +93,13 @@ class ImageGen:
         self.current_pixel = (0, self.current_pixel[1] + 50)
         for loser in player_list[2]:
             self.generate_player_imgs(loser)
-        self.current_image.save("temp.png")
+        if id is None:
+            self.current_image.save("temp.png")
+        else:
+            self.current_image.save(f"data/match_imgs/{id}.png")
 
     def generate_history_game(self, match):  # match = [champ, win/loss, keystone_id, perk_sub_style, kda, cs, [items], gold]
+        print(f"Parsing match {match}")
         self.resize_paste(self.get_champ_icon(match[0]), (50, 50), space=3)
         self.resize_paste(self.get_rune_img(match[2], 0), (30, 30), mvmt="down")
         self.current_pixel = (self.current_pixel[0], self.current_pixel[1] - 10)
@@ -114,9 +122,10 @@ class ImageGen:
         self.text(text=gold_with_comma, x=75, fill="Yellow")
 
     def generate_player_history(self, match_history):  # match history = [[match], [match]]
-        self.current_image = Image.new('RGBA', (500, 50*len(match_history)))
+        self.current_image = Image.new('RGBA', (530, 50*len(match_history)))
         self.draw = ImageDraw.Draw(self.current_image)
         self.current_pixel = (0, 0)
         for match in match_history:
             self.generate_history_game(match)
+            self.current_pixel = (0, self.current_pixel[1] + 40)
         self.current_image.save("temp.png")

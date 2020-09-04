@@ -1,17 +1,15 @@
 import json
 import os
 import time
-import image_gen
+from src import image_gen
 
 
 class ReplayReader:
     def __init__(self, replay_id):
-        if not os.path.exists('replays'):
-            os.mkdir('replays')
-        if os.path.exists(f'replays/{replay_id}.json'):
-            filename = f"replays/{replay_id}.json"
+        if os.path.exists(f'data/replays/{replay_id}.json'):
+            filename = f"data/replays/{replay_id}.json"
         else:
-            filename = f"replays/{replay_id}.rofl"
+            filename = f"data/replays/{replay_id}.rofl"
         if filename.endswith('.rofl'):
             with open(filename, 'r', encoding="utf8", errors="ignore") as f:
                 read_data = f.read()
@@ -79,7 +77,7 @@ class ReplayReader:
             players_dict = {}
             for players in self.stats:
                 items = []
-                for i in range(6):
+                for i in range(7):
                     items.append(players[f"ITEM{i}"])
                 if players["NAME"] == summoner_name:
                     players_dict["kda"] = f"{players['CHAMPIONS_KILLED']}/{players['NUM_DEATHS']}/{players['ASSISTS']}"
@@ -119,9 +117,9 @@ class ReplayReader:
             elif pstats["WIN"] == "Win":
                 list_to_mod = winners
             items = []
-            for i in range(6):
+            for i in range(7):
                 items.append(pstats[f"ITEM{i}"])
             kda = f"{pstats['CHAMPIONS_KILLED']}/{pstats['NUM_DEATHS']}/{pstats['ASSISTS']}"
             list_to_mod.append([pstats["KEYSTONE_ID"], pstats["PERK_SUB_STYLE"], pstats["SKIN"], pstats["NAME"], kda, pstats["MINIONS_KILLED"], items, pstats["GOLD_EARNED"]])
         win_kda, lose_kda = self.get_team_kdas()
-        self.image_gen.generate_game_img([[win_kda, lose_kda], winners, losers, self.map, self.game_time_str])
+        self.image_gen.generate_game_img([[win_kda, lose_kda], winners, losers, self.map, self.game_time_str], self.match_id)
