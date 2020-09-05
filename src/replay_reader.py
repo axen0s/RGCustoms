@@ -63,37 +63,34 @@ class ReplayReader:
         return winners, losers
 
     def get_player_stats(self, summoner_name=None, champ=None):
-        if summoner_name is None and champ is None:
-            players_dict = {}
-            for players in self.stats:
-                players_dict[players["NAME"]] = {}
-                players_dict[players["NAME"]][
-                    "kda"] = f"{players['CHAMPIONS_KILLED']}/{players['NUM_DEATHS']}/{players['ASSISTS']}"
-                players_dict[players["NAME"]]["champion"] = players["SKIN"]
-                players_dict[players["NAME"]]["csm"] = int(players["MINIONS_KILLED"]) / (self.game_time/60)
-                players_dict[players["NAME"]]["cs"] = players["MINIONS_KILLED"]
-            return players_dict
-        else:
-            players_dict = {}
-            for players in self.stats:
-                items = []
-                for i in range(7):
-                    items.append(players[f"ITEM{i}"])
-                if players["NAME"] == summoner_name:
-                    players_dict["kda"] = f"{players['CHAMPIONS_KILLED']}/{players['NUM_DEATHS']}/{players['ASSISTS']}"
-                    players_dict["champion"] = players["SKIN"]
-                    players_dict["csm"] = int(players["MINIONS_KILLED"]) / (self.game_time/60)
-                    players_dict["cs"] = players["MINIONS_KILLED"]
-                elif players["SKIN"] == champ:
-                    players_dict["kda"] = f"{players['CHAMPIONS_KILLED']}/{players['NUM_DEATHS']}/{players['ASSISTS']}"
-                    players_dict["champion"] = players["SKIN"]
-                    # players_dict["csm"] = int(players["MINIONS_KILLED"]) / (self.game_time/60)
-                    players_dict["cs"] = players["MINIONS_KILLED"]
-                    players_dict["keystone"] = players["KEYSTONE_ID"]
-                    players_dict["subperk"] = players["PERK_SUB_STYLE"]
-                    players_dict["gold"] = players["GOLD_EARNED"]
-                    players_dict["items"] = items
-            return players_dict
+        """
+        Can take a summoner name or champion as arguments. Returns player stats as a dict for that player/champ.
+        If neither are given, returns a list of all players and their stats.
+        :param summoner_name:
+        :param champ:
+        :return:
+        """
+        player_list = []
+        for players in self.stats:
+            player_dict = {}
+            items = []
+            for i in range(7):
+                items.append(players[f"ITEM{i}"])
+            if players["NAME"] == summoner_name or players["SKIN"] == champ or (summoner_name is None and champ is None):
+                player_dict["kda"] = f"{players['CHAMPIONS_KILLED']}/{players['NUM_DEATHS']}/{players['ASSISTS']}"
+                player_dict["champion"] = players["SKIN"]
+                player_dict["csm"] = int(players["MINIONS_KILLED"]) / (self.game_time/60)
+                player_dict["cs"] = players["MINIONS_KILLED"]
+                player_dict["keystone"] = players["KEYSTONE_ID"]
+                player_dict["subperk"] = players["PERK_SUB_STYLE"]
+                player_dict["gold"] = players["GOLD_EARNED"]
+                player_dict["items"] = items
+                player_dict["result"] = 'Win' if players["WIN"] == "Win" else 'Lose'
+                player_dict["name"] = players["NAME"]
+                player_list.append(player_dict)
+        if len(player_list) == 1:
+            return player_list[0]
+        return player_list
 
     def get_team_kdas(self):
         winner_kda = [0, 0, 0]
@@ -111,15 +108,11 @@ class ReplayReader:
     def generate_game_img(self):
         winners = []  # [KEYSTONE_ID, PERK_SUB_STYLE, champ, name, KDA, [items]]
         losers = []
-        for pstats in self.stats:
-            if pstats["WIN"] == "Fail":
+        for player in self.get_player_stats():
+            if player["result"] == "Lose":
                 list_to_mod = losers
-            elif pstats["WIN"] == "Win":
+            elif player["result"] == "Win":
                 list_to_mod = winners
-            items = []
-            for i in range(7):
-                items.append(pstats[f"ITEM{i}"])
-            kda = f"{pstats['CHAMPIONS_KILLED']}/{pstats['NUM_DEATHS']}/{pstats['ASSISTS']}"
-            list_to_mod.append([pstats["KEYSTONE_ID"], pstats["PERK_SUB_STYLE"], pstats["SKIN"], pstats["NAME"], kda, pstats["MINIONS_KILLED"], items, pstats["GOLD_EARNED"]])
+            list_to_mod.append(player)
         win_kda, lose_kda = self.get_team_kdas()
         self.image_gen.generate_game_img([[win_kda, lose_kda], winners, losers, self.map, self.game_time_str], self.match_id)

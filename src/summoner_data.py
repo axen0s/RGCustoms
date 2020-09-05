@@ -69,8 +69,11 @@ class SummonerData:
     def history(self, discord_id=None, summoner_name=None, mode="all"):
         names = []
         if discord_id:
-            for summoner_names in self.sum2id[str(discord_id)]:
-                names.append(summoner_names)
+            if str(discord_id) in self.sum2id:
+                for summoner_names in self.sum2id[str(discord_id)]:
+                    names.append(summoner_names)
+            else:
+                return ["Discord ID not linked."]
         elif summoner_name:
             names.append(summoner_name)
         matches = []
@@ -95,10 +98,9 @@ class SummonerData:
         games = 0
         wins = 0
         champ_data = {}
-        print(matches)
         if len(matches) == 0:
             return "No matches found on that map"
-        if "Summoner name " in matches[0] and " not found" in matches[0]:
+        if len(matches) == 1 and not ("|" in matches[0]):
             return matches[0]
         for match in matches:
             champ, result, kda, game_id, csm = match.split("|")

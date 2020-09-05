@@ -62,21 +62,21 @@ class ImageGen:
             return Image.open(f"img/item/{item}.png")
 
     def generate_player_imgs(self, player):
-        self.resize_paste(self.get_rune_img(player[0], 0), (40, 40), space=2)
-        self.resize_paste(self.get_style_img(player[1]), (20, 20), center="y")
-        self.resize_paste(self.get_champ_icon(player[2]), (40, 40))
-        self.text(text=player[3], x=150)
-        self.text(text=player[4], x=75)
+        self.resize_paste(self.get_rune_img(player["keystone"], 0), (40, 40), space=2)
+        self.resize_paste(self.get_style_img(player["substyle"]), (20, 20), center="y")
+        self.resize_paste(self.get_champ_icon(player["champion"]), (40, 40))
+        self.text(text=player["name"], x=150)
+        self.text(text=player["kda"], x=75)
         self.current_pixel = (self.current_pixel[0], self.current_pixel[1] + 5)
-        for item in player[6]:
+        for item in player["items"]:
             self.resize_paste(self.get_item_icon(item), (30, 30), space=1)
         self.current_pixel = (self.current_pixel[0] + 10, self.current_pixel[1])
-        self.text(text=player[5], x=40, fill=(135, 157, 237, 255))
-        gold_with_comma = str(player[7][0:-3]) + "," + str(player[7][-3:])
+        self.text(text=player["cs"], x=40, fill=(135, 157, 237, 255))
+        gold_with_comma = str(player["gold"][0:-3]) + "," + str(player["gold"][-3:])
         self.text(text=gold_with_comma, x=75, fill="Yellow")
         self.current_pixel = (0, self.current_pixel[1] + 40)
 
-    def generate_game_img(self, player_list, id=None):
+    def generate_game_img(self, player_list, replay_id=None):
         # [[winner kda, loser kda], Winners, Losers, map, timestamp]
         # in each team will be a list of players, containing [KEYSTONE_ID, PERK_SUB_STYLE, champ, name, KDA, minions_killed, [items], gold_earned]
         additional_pixels = (len(player_list[1]) + len(player_list[2])) * 43  # add another 45 pts for each player
@@ -93,10 +93,10 @@ class ImageGen:
         self.current_pixel = (0, self.current_pixel[1] + 50)
         for loser in player_list[2]:
             self.generate_player_imgs(loser)
-        if id is None:
+        if replay_id is None:
             self.current_image.save("temp.png")
         else:
-            self.current_image.save(f"data/match_imgs/{id}.png")
+            self.current_image.save(f"data/match_imgs/{replay_id}.png")
 
     def generate_history_game(self, match):  # match = [champ, win/loss, keystone_id, perk_sub_style, kda, cs, [items], gold]
         print(f"Parsing match {match}")

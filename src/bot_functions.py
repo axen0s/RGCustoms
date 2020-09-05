@@ -97,6 +97,9 @@ class BotFunctions:
     async def history(self, message):
         matches = self.get_history(message)
         match_history = []
+        if len(matches) == 1 and "|" not in matches[0]:
+            await message.channel.send(content=matches[0])
+            return
         for match in matches:
             champ, result, kda, game_id, csm = match.split("|")
             replay = replay_reader.ReplayReader(game_id)
