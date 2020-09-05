@@ -10,7 +10,7 @@ def msg2sum(content, d_id):
     if space_split[1].startswith('<@!') and space_split[1].endswith('>'):
         return " ".join(space_split[2:]), space_split[1][3:-1]  # given summonername, given discord id
     else:
-        return " ".join(space_split[1:]), d_id  # given summoner name, author's discord id
+        return " ".join(space_split[1:]), None  # given summoner name, no discord id
 
 
 class BotFunctions:
@@ -115,10 +115,9 @@ class BotFunctions:
         summoner_name, discord_id = msg2sum(message.content, message.author.id)
         # Warning : The if statement below will mess up if the given summoner name ends with " sr" or " ha"
         if summoner_name:
-            if summoner_name[-3:].lower() == "sr" or summoner_name[-3:].lower() == "ha":
-                game_map = summoner_name[-3:].lower()
+            if summoner_name[-3:].lower() == " sr" or summoner_name[-3:].lower() == " ha":
+                game_map = summoner_name[-2:].lower()
                 summoner_name = summoner_name[:-3]
-        print(f"Getting history for ID {discord_id} / Sname {summoner_name}")
         return self.summoner_data.history(summoner_name=summoner_name, discord_id=discord_id, mode=game_map)
 
     async def help(self, message):
@@ -127,7 +126,9 @@ class BotFunctions:
             cmd_list = ""
             for cmd in self.commands:
                 cmd_list += cmd + ", "
-            await message.channel.send(content=cmd_list[:-2])
+            cmd_list = cmd_list[:-2] + "\n"
+            cmd_list += f"Use {self.prefix}help {{command}} to get more help."
+            await message.channel.send(content=cmd_list)
         elif len(space_split) == 2:
             for cmd in self.commands:
                 if cmd.lower() == space_split[1].lower():

@@ -83,6 +83,7 @@ class ReplayReader:
                 player_dict["cs"] = players["MINIONS_KILLED"]
                 player_dict["keystone"] = players["KEYSTONE_ID"]
                 player_dict["subperk"] = players["PERK_SUB_STYLE"]
+                player_dict["runes"] = [[players["PERK1"], players["PERK2"], players["PERK3"]], [players["PERK4"], players["PERK5"]]]  # smaller runes
                 player_dict["gold"] = players["GOLD_EARNED"]
                 player_dict["items"] = items
                 player_dict["result"] = 'Win' if players["WIN"] == "Win" else 'Lose'
