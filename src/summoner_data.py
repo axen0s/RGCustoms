@@ -117,16 +117,18 @@ class SummonerData:
             current_champ_data[4] += int(assists)
             current_champ_data[5] += float(csm)
             champ_data[champ] = current_champ_data
-        profile_str = f"{wins}W {games-wins}L ({simplify(wins/games)*100}% WR)\nChamp - Winrate - KDA - CS/min\n"
+        champ_data_list = []
         for champ in champ_data:
-            total_games = champ_data[champ][0] + champ_data[champ][1]
-            winrate = simplify((champ_data[champ][0] / total_games) * 100)
-            average_k = simplify((champ_data[champ][2] / total_games))
-            average_d = simplify((champ_data[champ][3] / total_games))
-            average_a = simplify((champ_data[champ][4] / total_games))
-            average_csm = simplify(round(champ_data[champ][5] / total_games, 1))
-            profile_str += f"{champ} - {winrate}% - {average_k}/{average_d}/{average_a} - {average_csm}\n"
-        return profile_str
+            avg_champ_data = {"champion": champ, "games": champ_data[champ][0] + champ_data[champ][1], "wins": champ_data[champ][0]}
+            avg_champ_data["wr"] = int((champ_data[champ][0] / avg_champ_data["games"]) * 100)  # Winrate
+            average_k = simplify((champ_data[champ][2] / avg_champ_data["games"]))  # Average kills
+            average_d = simplify((champ_data[champ][3] / avg_champ_data["games"]))  # Average deaths
+            average_a = simplify((champ_data[champ][4] / avg_champ_data["games"]))  # Average assists
+            avg_champ_data["kda"] = f"{average_k}/{average_d}/{average_a}"
+            avg_champ_data["kdr"] = round((average_a + average_k) / average_d, 2)
+            avg_champ_data["csm"] = simplify(round(champ_data[champ][5] / avg_champ_data["games"], 1))  # Average CS per minute
+            champ_data_list.append(avg_champ_data)
+        return champ_data_list
 
     def save(self):  # Saves sum2id yaml file
         with open("data/summoner_to_id.yaml", "w") as f:

@@ -16,14 +16,17 @@ class ImageGen:
         self.large_font = ImageFont.truetype("arial.ttf", 24)
         self.normal_font = ImageFont.truetype("arial.ttf", 16)
 
-    def text(self, text, font=None, fill="white", x=60, y=30):
+    def text(self, text, font=None, fill="white", x=60, y=30, direction="right"):
         if font is None:
             font = self.normal_font
             y_mod = 0
         else:
             y_mod = 6
         self.draw.text((self.current_pixel[0], self.current_pixel[1] + (y/3)), text, fill=fill, font=font)
-        self.current_pixel = (self.current_pixel[0] + x, self.current_pixel[1] + y_mod)
+        if direction == "right":
+            self.current_pixel = (self.current_pixel[0] + x, self.current_pixel[1] + y_mod)
+        elif direction == "down":
+            self.current_pixel = (self.current_pixel[0], self.current_pixel[1] + y + y_mod)
 
     def resize_paste(self, img, size, center="", mvmt="right", space=10):
         if img is None:  # when does this happen ?
@@ -99,7 +102,6 @@ class ImageGen:
             self.current_image.save(f"data/match_imgs/{replay_id}.png")
 
     def generate_history_game(self, match):  # match = [champ, win/loss, keystone_id, perk_sub_style, kda, cs, [items], gold]
-        print(f"Parsing match {match}")
         self.resize_paste(self.get_champ_icon(match[0]), (50, 50), space=3)
         self.resize_paste(self.get_rune_img(match[2], 0), (30, 30), mvmt="down")
         self.current_pixel = (self.current_pixel[0], self.current_pixel[1] - 10)
@@ -128,4 +130,43 @@ class ImageGen:
         for match in match_history:
             self.generate_history_game(match)
             self.current_pixel = (0, self.current_pixel[1] + 40)
+        self.current_image.save("temp.png")
+
+    def generate_profile_stats(self, champ_data):
+        """
+        Draws champion data on the current image (self.current_image) with given data
+        :param dict champ_data: Champion data, should contain keys "champion", "wins", "games", "kda", "csm", "wr"
+        :return:
+        """
+        self.resize_paste(self.get_champ_icon(champ_data["champion"]), (50, 50))
+        self.current_pixel = (self.current_pixel[0], self.current_pixel[1] - 12)
+        self.text(champ_data["champion"], font=self.large_font, direction="down")
+        self.text(f"{champ_data['csm']} CS/min", font=self.normal_font)
+        self.current_pixel = (self.current_pixel[0] + 40, self.current_pixel[1] - 43)
+        self.text(f"{champ_data['kdr']} KDA Ratio", font=self.large_font, direction="down")
+        self.text(champ_data["kda"])
+        self.current_pixel = (self.current_pixel[0] + 120, self.current_pixel[1] - 35)
+        self.text(f"{champ_data['wr']} %", font=self.large_font, direction="down")
+        self.text(f"{champ_data['games']} played")
+        self.current_pixel = (0, self.current_pixel[1] + 30)
+
+    def generate_player_profile(self, champ_data):
+        """
+        Draws a player profile akin to OP.GG's seasonal data on a new image.
+        :param list champ_data: A list of champion data to be passed to generate_profile_stats
+        :return:
+        """
+        self.current_image = Image.new('RGBA', (430, 50+(len(champ_data)*53)))
+        self.draw = ImageDraw.Draw(self.current_image)
+        self.current_pixel = (0, 50)
+        overall_games = 0
+        overall_wins = 0
+        for champ in champ_data:
+            self.generate_profile_stats(champ)
+            overall_games += champ["games"]
+            overall_wins += champ["wins"]
+        overall_losses = overall_games - overall_wins
+        overall_wr = int(round((overall_wins / overall_games) * 100, 0))
+        self.current_pixel = (0, 0)
+        self.text(text=f"{overall_wins}W {overall_losses}L ({overall_wr}% Winrate)", font=self.large_font)
         self.current_image.save("temp.png")

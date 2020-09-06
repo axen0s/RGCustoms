@@ -92,7 +92,9 @@ class BotFunctions:
 
     async def profile(self, message):
         matches = self.get_history(message)
-        await message.channel.send(content=self.summoner_data.profile(matches))
+        champ_data_list = self.summoner_data.profile(matches)
+        self.image_gen.generate_player_profile(champ_data_list)
+        await message.channel.send(file=File('temp.png'))
 
     async def history(self, message):
         matches = self.get_history(message)
