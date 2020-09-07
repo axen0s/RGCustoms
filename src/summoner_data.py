@@ -48,19 +48,19 @@ class SummonerData:
     def log(self, replay_id):  # Summoner name (file) -> map (1 of 2 lists) -> [Champion, game result, KDA]
         replay = replay_reader.ReplayReader(replay_id)
         winners, losers = replay.results()  # Winners: [winners] Losers: [losers]
-        pstats = replay.get_player_stats()  # {"NAME":"kda","champion"}
+        pstats = replay.get_player_stats()
         game_map = replay.infer_map()
-        for player in (winners + losers):
-            kda = pstats[player]['kda']
-            champion = pstats[player]['champion']
-            csm = pstats[player]['csm']
-            result = 'Win' if player in winners else 'Loss'
-            if os.path.exists(f'data/players/{player}.yaml'):
-                with open(f"data/players/{player}.yaml", "r") as f:
+        for player in pstats:
+            kda = player['kda']
+            champion = player['champion']
+            csm = player['csm']
+            result = 'Win' if player['name'] in winners else 'Loss'
+            if os.path.exists(f'data/players/{player["name"]}.yaml'):
+                with open(f"data/players/{player['name']}.yaml", "r") as f:
                     pyaml = yaml.load(f, Loader=yaml.FullLoader)
             else:
                 pyaml = {}
-            with open(f"data/players/{player}.yaml", "w") as f:
+            with open(f"data/players/{player['name']}.yaml", "w") as f:
                 yaml_map = pyaml.get(game_map, [])
                 yaml_map.append(f"{champion}|{result}|{kda}|{replay_id}|{csm}")
                 pyaml[game_map] = yaml_map

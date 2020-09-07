@@ -66,7 +66,7 @@ class ImageGen:
 
     def generate_player_imgs(self, player):
         self.resize_paste(self.get_rune_img(player["keystone"], 0), (40, 40), space=2)
-        self.resize_paste(self.get_style_img(player["substyle"]), (20, 20), center="y")
+        self.resize_paste(self.get_style_img(player["subperk"]), (20, 20), center="y")
         self.resize_paste(self.get_champ_icon(player["champion"]), (40, 40))
         self.text(text=player["name"], x=150)
         self.text(text=player["kda"], x=75)

@@ -47,9 +47,9 @@ class BotFunctions:
             elif not os.path.exists("data/logged.txt"):
                 with open("data/logged.txt", "w") as f:
                     pass
+            self.summoner_data.log(replay_id)
             with open("data/logged.txt", "a") as f:
                 f.write(f"{replay_id}\n")
-            self.summoner_data.log(replay_id)
             if message:
                 await message.channel.send(content=f"Match {replay_id} logged")
 
@@ -84,11 +84,21 @@ class BotFunctions:
 
     async def link(self, message):
         summoner_name, discord_id = msg2sum(message.content, message.author.id)
-        await message.channel.send(content=self.summoner_data.link(summoner_name, str(discord_id)))
+        if discord_id is None:
+            discord_id = message.author.id
+        if discord_id != int(message.author.id) and int(message.author.id) != 178311504049864714:
+            await message.channel.send(content="You don't have permissions to do that.")
+        else:
+            await message.channel.send(content=self.summoner_data.link(summoner_name, str(discord_id)))
 
     async def unlink(self, message):
         summoner_name, discord_id = msg2sum(message.content, message.author.id)
-        await message.channel.send(content=self.summoner_data.unlink(summoner_name, str(discord_id)))
+        if discord_id is None:
+            discord_id = message.author.id
+        if discord_id != int(message.author.id) and int(message.author.id) != 178311504049864714:
+            await message.channel.send(content="You don't have permissions to do that.")
+        else:
+            await message.channel.send(content=self.summoner_data.unlink(summoner_name, str(discord_id)))
 
     async def profile(self, message):
         matches = self.get_history(message)
